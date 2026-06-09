@@ -1,6 +1,20 @@
-# Trello風タスク管理アプリ 基本設計書 v0.1
+# Trello風タスク管理アプリ 基本設計書 v0.2
 
-## 1. システム概要
+## 1. この資料の位置づけ
+
+この資料は、Trello風タスク管理アプリの基本設計をまとめるものである。
+
+画面に関する詳細は `screen-spec.md` に切り出す。
+この資料では、主に以下を扱う。
+
+- システム概要
+- データ設計
+- DB設計
+- 操作フロー
+- エラー設計
+- 実装時の基本方針
+
+## 2. システム概要
 
 本アプリは、1つのタスクボード上でタスクを管理するWebアプリである。
 
@@ -15,89 +29,15 @@ MVPではログイン機能を持たず、単一ユーザー利用を前提と�
 
 DBテーブルは `tasks` の1テーブルのみとする。
 
-## 2. 画面一覧
+## 3. 画面一覧
+
+画面詳細は `screen-spec.md` を参照する。
 
 | 画面ID | 画面名 | 概要 |
 |---|---|---|
 | SCR-001 | タスクボード画面 | タスク一覧、追加、編集、削除、移動を行う |
 
-## 3. 画面構成 Mermaid
-
-```mermaid
-flowchart TB
-    A[タスクボード画面]
-
-    A --> B[画面タイトル: My Task Board]
-    A --> C[Todoカラム]
-    A --> D[Doingカラム]
-    A --> E[Doneカラム]
-
-    C --> C1[タスク一覧]
-    C --> C2[＋タスク追加ボタン]
-
-    D --> D1[タスク一覧]
-    D --> D2[＋タスク追加ボタン]
-
-    E --> E1[タスク一覧]
-    E --> E2[＋タスク追加ボタン]
-
-    C1 --> T1[タスクカード]
-    D1 --> T2[タスクカード]
-    E1 --> T3[タスクカード]
-
-    T1 --> X1[タイトル]
-    T1 --> X2[期限]
-    T1 --> X3[優先度]
-    T1 --> X4[期限切れ表示]
-    T1 --> X5[編集ボタン]
-    T1 --> X6[削除ボタン]
-    T1 --> X7[移動ボタン]
-```
-
-## 4. 画面レイアウト案
-
-```text
-+------------------------------------------------------------+
-| My Task Board                                              |
-+------------------------------------------------------------+
-| Todo              | Doing             | Done               |
-|-------------------|-------------------|--------------------|
-| + タスク追加      | + タスク追加      | + タスク追加       |
-|                   |                   |                    |
-| [タスクカード]    | [タスクカード]    | [タスクカード]     |
-| タイトル          | タイトル          | タイトル           |
-| 期限              | 期限              | 期限               |
-| 優先度            | 優先度            | 優先度             |
-| 期限切れ          | 期限切れ          |                    |
-| 編集 削除         | 編集 削除         | 編集 削除          |
-| Doingへ           | Todoへ Doneへ     | Doingへ            |
-+------------------------------------------------------------+
-```
-
-## 5. 画面内状態遷移 Mermaid
-
-```mermaid
-stateDiagram-v2
-    [*] --> BoardView
-
-    BoardView: タスクボード表示
-
-    BoardView --> AddForm: ＋タスク追加を押す
-    AddForm --> BoardView: 保存成功
-    AddForm --> BoardView: キャンセル
-    AddForm --> AddForm: 入力エラー
-
-    BoardView --> EditForm: 編集を押す
-    EditForm --> BoardView: 保存成功
-    EditForm --> BoardView: キャンセル
-    EditForm --> EditForm: 入力エラー
-
-    BoardView --> DeleteConfirm: 削除を押す
-    DeleteConfirm --> BoardView: OK
-    DeleteConfirm --> BoardView: キャンセル
-```
-
-## 6. タスク状態遷移 Mermaid
+## 4. タスク状態遷移 Mermaid
 
 ```mermaid
 stateDiagram-v2
@@ -125,9 +65,9 @@ stateDiagram-v2
 | Todo | Done |
 | Done | Todo |
 
-## 7. 操作フロー Mermaid
+## 5. 操作フロー Mermaid
 
-### 7.1 タスク追加フロー
+### 5.1 タスク追加フロー
 
 ```mermaid
 flowchart TD
@@ -144,7 +84,7 @@ flowchart TD
     I --> J[フォームを閉じる]
 ```
 
-### 7.2 タスク編集フロー
+### 5.2 タスク編集フロー
 
 ```mermaid
 flowchart TD
@@ -161,7 +101,7 @@ flowchart TD
     I --> J[カード表示に戻る]
 ```
 
-### 7.3 タスク削除フロー
+### 5.3 タスク削除フロー
 
 ```mermaid
 flowchart TD
@@ -172,7 +112,7 @@ flowchart TD
     E --> F[タスク一覧を更新]
 ```
 
-### 7.4 タスク移動フロー
+### 5.4 タスク移動フロー
 
 ```mermaid
 flowchart TD
@@ -182,7 +122,7 @@ flowchart TD
     D --> E[タスク一覧を更新]
 ```
 
-## 8. ER図 Mermaid
+## 6. ER図 Mermaid
 
 今回は `tasks` テーブル1つのみとする。
 
@@ -200,7 +140,7 @@ erDiagram
     }
 ```
 
-## 9. tasks テーブル定義
+## 7. tasks テーブル定義
 
 | カラム名 | 型 | 必須 | 内容 |
 |---|---|---:|---|
@@ -213,7 +153,7 @@ erDiagram
 | created_at | timestamp with time zone | 必須 | 作成日時 |
 | updated_at | timestamp with time zone | 必須 | 更新日時 |
 
-## 10. DB作成SQL
+## 8. DB作成SQL
 
 Supabase SQL Editorで以下を実行する。
 
@@ -230,7 +170,7 @@ create table tasks (
 );
 ```
 
-## 11. 初期データ投入SQL
+## 9. 初期データ投入SQL
 
 ```sql
 insert into tasks (title, due_date, priority, column_key, order_index)
@@ -240,7 +180,7 @@ values
   ('開発環境を準備する', null, 'normal', 'done', 1);
 ```
 
-## 12. 固定カラム定義
+## 10. 固定カラム定義
 
 カラムはDBではなく、アプリ側の固定値として定義する。
 
@@ -252,7 +192,7 @@ export const COLUMNS = [
 ] as const;
 ```
 
-## 13. 優先度定義
+## 11. 優先度定義
 
 | 表示名 | DB値 |
 |---|---|
@@ -261,7 +201,7 @@ export const COLUMNS = [
 | 高 | high |
 | 緊急 | urgent |
 
-## 14. エラー表示設計
+## 12. エラー表示設計
 
 | ケース | 表示メッセージ |
 |---|---|
